@@ -1,0 +1,85 @@
+$br: 8px
+$bg: white
+
+.flip-item
+  background-color: $bg
+  color: black
+  position: relative
+  width: 80px
+  height: 120px
+  perspective: 400px
+  font-size: 5rem
+  border-radius: $br
+
+  .card-top,
+  .card-bot,
+  .card-top-flipping,
+  .card-bot-flipping
+    display: flex
+    justify-content: center
+    width: 100%
+    height: 50%
+    overflow: hidden
+    position: absolute
+    backface-visibility: hidden
+    border: 1px solid gray
+
+  .card-top
+    top: 0
+    align-items: flex-end
+    border-radius: $br $br 0 0
+    position: relative
+
+    span
+      transform: translateY(50%)
+
+  .card-bot
+    bottom: 0
+    align-items: flex-start
+    border-radius: 0 0 $br $br
+    position: relative
+
+    span
+      transform: translateY(-50%)
+
+  .card-top-flipping
+    top: 0
+    align-items: flex-end
+    transform-origin: center bottom
+    z-index: 2
+    background-color: $bg
+    border-radius: $br $br 0 0
+
+    span
+      transform: translateY(50%)
+
+  .card-bot-flipping
+    top: 50%
+    align-items: flex-start
+    transform-origin: center top
+    z-index: 1
+    background-color: $bg
+    border-radius: 0 0 $br $br
+
+    span
+      transform: translateY(-50%)
+
+  .fold-card
+    transform-style: preserve-3d
+    animation: fold 1s forwards
+
+  .unfold-card
+    transform-style: preserve-3d
+    animation: unfold 1s forwards
+
+@keyframes fold
+  0%
+    transform: rotateX(0deg)
+  100%
+    transform: rotateX(-180deg)
+
+@keyframes unfold
+  0%
+    transform: rotateX(180deg)
+  100%
+    transform: rotateX(0deg)
