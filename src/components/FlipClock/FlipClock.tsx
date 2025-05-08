@@ -1,16 +1,20 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import FlipItem from "../FlipItem/FlipItem";
+import FlipItemGroup from "../FlipItemGroup/FlipItemGroup";
 
 export default function FlipClock() {
-  const [seconds, setSeconds] = useState(59);
-  const [minutes, setMinutes] = useState(59);
-  const [hours, setHours] = useState(23);
+  const [seconds, setSeconds] = useState(10);
+  const [minutes, setMinutes] = useState(0);
+  const [hours, setHours] = useState(0);
+  const [days, setDays] = useState(1000);
 
   useEffect(() => {
     const interval = setInterval(() => {
       let newSeconds = seconds - 1;
       let newMinutes = minutes;
       let newHours = hours;
+      let newDays = days;
 
       if (newSeconds < 0) {
         newSeconds = 59;
@@ -24,11 +28,13 @@ export default function FlipClock() {
 
       if (newHours < 0) {
         newHours = 23;
+        newDays = newDays - 1;
       }
 
       setSeconds(newSeconds);
       setMinutes(newMinutes);
       setHours(newHours);
+      setDays(newDays);
     }, 1000);
 
     return () => {
@@ -38,33 +44,13 @@ export default function FlipClock() {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="flex flex-col justify-center items-center gap-2">
-        <div className="flex gap-4">
-          <FlipItem digit={Math.floor(hours / 10)} />
-          <FlipItem digit={hours % 10} />
-        </div>
-        <div className="text-center">hours</div>
-      </div>
-
+      <FlipItemGroup value={days} label="days" />
       <div className="text-8xl mb-12">:</div>
-
-      <div className="flex flex-col justify-center items-center gap-2">
-        <div className="flex gap-4">
-          <FlipItem digit={Math.floor(minutes / 10)} />
-          <FlipItem digit={minutes % 10} />
-        </div>
-        <div className="text-center">minutes</div>
-      </div>
-
+      <FlipItemGroup value={hours} label="hours" />
       <div className="text-8xl mb-12">:</div>
-
-      <div className="flex flex-col justify-center items-center gap-2">
-        <div className="flex gap-4">
-          <FlipItem digit={Math.floor(seconds / 10)} />
-          <FlipItem digit={seconds % 10} />
-        </div>
-        <div className="text-center">seconds</div>
-      </div>
+      <FlipItemGroup value={minutes} label="minutes" />
+      <div className="text-8xl mb-12">:</div>
+      <FlipItemGroup value={seconds} label="seconds" />
     </div>
   );
 }
