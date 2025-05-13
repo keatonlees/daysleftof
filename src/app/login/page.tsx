@@ -3,21 +3,16 @@
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const { signIn, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      router.push("/");
-    }
-  }, [user, router]);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +21,12 @@ export default function LoginPage() {
       setLoading(true);
       await signIn(email, password);
       router.push("/"); // Redirect to home page after successful login
-    } catch (err) {
-      setError("Failed to sign in. Please check your credentials.");
-      console.error(err);
+    } catch (e: unknown) {
+      setError(
+        (e as Error).message ||
+          "Failed to sign in. Please check your credentials."
+      );
+      console.error(e);
     } finally {
       setLoading(false);
     }

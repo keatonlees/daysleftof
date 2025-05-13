@@ -3,54 +3,56 @@
 import React, { useEffect, useState } from "react";
 import FlipItemGroup from "../FlipItemGroup/FlipItemGroup";
 
-export default function FlipClock() {
-  const [seconds, setSeconds] = useState(10);
-  const [minutes, setMinutes] = useState(0);
-  const [hours, setHours] = useState(0);
-  const [days, setDays] = useState(1000);
+interface FlipClockProps {
+  endDate: Date;
+}
+
+export default function FlipClock({ endDate }: FlipClockProps) {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      let newSeconds = seconds - 1;
-      let newMinutes = minutes;
-      let newHours = hours;
-      let newDays = days;
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = endDate.getTime() - now.getTime();
 
-      if (newSeconds < 0) {
-        newSeconds = 59;
-        newMinutes = newMinutes - 1;
+      if (difference <= 0) {
+        setTimeLeft({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        });
+        return;
       }
 
-      if (newMinutes < 0) {
-        newMinutes = 59;
-        newHours = newHours - 1;
-      }
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / (1000 * 60)) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
 
-      if (newHours < 0) {
-        newHours = 23;
-        newDays = newDays - 1;
-      }
-
-      setSeconds(newSeconds);
-      setMinutes(newMinutes);
-      setHours(newHours);
-      setDays(newDays);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
+      setTimeLeft({ days, hours, minutes, seconds });
     };
-  }, [seconds]);
+
+    calculateTimeLeft();
+
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [timeLeft.seconds, endDate]);
 
   return (
     <div className="flex items-center gap-4">
-      <FlipItemGroup value={days} label="days" />
+      <FlipItemGroup value={timeLeft.days} label="days" />
       <div className="text-8xl mb-12">:</div>
-      <FlipItemGroup value={hours} label="hours" />
+      <FlipItemGroup value={timeLeft.hours} label="hours" />
       <div className="text-8xl mb-12">:</div>
-      <FlipItemGroup value={minutes} label="minutes" />
+      <FlipItemGroup value={timeLeft.minutes} label="minutes" />
       <div className="text-8xl mb-12">:</div>
-      <FlipItemGroup value={seconds} label="seconds" />
+      <FlipItemGroup value={timeLeft.seconds} label="seconds" />
     </div>
   );
 }

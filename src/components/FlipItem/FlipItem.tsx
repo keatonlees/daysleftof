@@ -7,7 +7,7 @@ export default function FlipItem({ digit }: { digit: number }) {
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
-    if (digit !== prevDigit) {
+    if (digit !== curDigit) {
       setPrevDigit(curDigit);
       setCurDigit(digit);
       setAnimate(true);
@@ -18,6 +18,7 @@ export default function FlipItem({ digit }: { digit: number }) {
 
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [digit]);
 
   return (

@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -13,12 +13,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const { signUp, user } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (user) {
-      router.push("/");
-    }
-  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +27,11 @@ export default function SignupPage() {
       setLoading(true);
       await signUp(email, password);
       router.push("/"); // Redirect to home page after successful signup
-    } catch (err) {
-      setError("Failed to create an account. Please try again.");
-      console.error(err);
+    } catch (e: unknown) {
+      setError(
+        (e as Error).message || "Failed to create an account. Please try again."
+      );
+      console.error(e);
     } finally {
       setLoading(false);
     }
