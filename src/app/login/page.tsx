@@ -20,7 +20,7 @@ export default function LoginPage() {
       setError("");
       setLoading(true);
       await signIn(email, password);
-      router.push("/"); // Redirect to home page after successful login
+      router.push("/profile");
     } catch (e: unknown) {
       setError(
         (e as Error).message ||
@@ -32,10 +32,7 @@ export default function LoginPage() {
     }
   };
 
-  // If user is already logged in, don't render the login form
-  if (user) {
-    return null;
-  }
+  if (user) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">

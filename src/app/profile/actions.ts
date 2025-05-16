@@ -6,6 +6,7 @@ export async function getCountersByUID(uid: string) {
       .from("Counters")
       .select("*")
       .eq("user_id", uid)
+      .order("modified_at", { ascending: false })
       .throwOnError();
 
     if (!data) return { data: null, error: "No data returned" };

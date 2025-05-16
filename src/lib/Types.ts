@@ -1,3 +1,5 @@
+import { visibility } from "./Enums";
+
 export interface CounterType {
   id: string;
   sid: string;
@@ -7,4 +9,5 @@ export interface CounterType {
   created_at: Date;
   modified_at: Date;
   end_date: Date;
+  is_public: boolean;
 }
