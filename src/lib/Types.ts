@@ -1,5 +1,3 @@
-import { visibility } from "./Enums";
-
 export interface CounterType {
   id: string;
   sid: string;
