@@ -6,8 +6,7 @@ export async function getCounterBySID(id: string) {
       .from("Counters")
       .select()
       .eq("sid", id)
-      .single()
-      .throwOnError();
+      .single();
 
     return { data: data, error: null };
   } catch (e) {

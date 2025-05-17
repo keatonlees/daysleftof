@@ -1,5 +1,6 @@
 "use client";
 
+import FlipClock from "@/components/FlipClock/FlipClock";
 import { CounterType } from "@/lib/Types";
 import getFormattedURL from "@/util/getFormattedURL";
 import { Eye } from "lucide-react";
@@ -32,10 +33,13 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center text-center min-h-screen gap-8 p-8">
+      <div className="flex flex-col items-center justify-center text-center min-h-screen gap-8 lg:gap-16 p-8">
         <p className="text-5xl lg:text-9xl font-bold">
           Super Simple Countdowns
         </p>
+
+        <FlipClock endDate={new Date("2027-05-24")} />
+
         <div className="flex gap-2">
           <button
             className="btn btn-md lg:btn-lg btn-neutral btn-outline"
@@ -53,7 +57,9 @@ export default function Home() {
       </div>
 
       <div className="pb-24 px-4 md:px-12 xl:px-24" id="recents">
-        <h1 className="text-2xl font-bold mb-4 px">Recent Counters</h1>
+        <h1 className="text-2xl font-bold mb-4 px">
+          Recently Created Counters
+        </h1>
         {loadingCounters ? (
           <div className="grid grid-cols-3 gap-4">
             {[...Array(3)].map((e, i) => (

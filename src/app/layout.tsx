@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DaysLeftOf",
-  description: "Super Simple Countdowns",
+  description: "Super Simple Countdowns for anything you plan!",
 };
 
 export default function RootLayout({

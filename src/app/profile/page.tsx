@@ -219,9 +219,19 @@ export default function Profile() {
                           className={"toggle toggle-sm border-black text-black"}
                         />
                         {counter.is_public ? (
-                          <span className="font-bold">Public</span>
+                          <div
+                            className="tooltip tooltip-top-left tooltip-info"
+                            data-tip="Anyone can find this via the explore page"
+                          >
+                            <span className="font-bold">Public</span>
+                          </div>
                         ) : (
-                          <span className="font-bold">Private</span>
+                          <div
+                            className="tooltip tooltip-top-left tooltip-info"
+                            data-tip="Only people with the link can find this"
+                          >
+                            <span className="font-bold">Private</span>
+                          </div>
                         )}
                       </div>
                     </div>

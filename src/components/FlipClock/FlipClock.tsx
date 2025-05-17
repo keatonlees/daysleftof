@@ -45,13 +45,13 @@ export default function FlipClock({ endDate }: FlipClockProps) {
   }, [timeLeft.seconds, endDate]);
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4">
+    <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 max-w-[90vw]">
       <FlipItemGroup value={timeLeft.days} label="days" />
-      <div className="text-4xl md:text-6xl lg:text-8xl mb-12">:</div>
+      <div className="text-4xl md:text-6xl lg:text-8xl mb-10 lg:mb-12">:</div>
       <FlipItemGroup value={timeLeft.hours} label="hours" />
-      <div className="text-4xl md:text-6xl lg:text-8xl mb-12">:</div>
+      <div className="text-4xl md:text-6xl lg:text-8xl mb-10 lg:mb-12">:</div>
       <FlipItemGroup value={timeLeft.minutes} label="minutes" />
-      <div className="text-4xl md:text-6xl lg:text-8xl mb-12">:</div>
+      <div className="text-4xl md:text-6xl lg:text-8xl mb-10 lg:mb-12">:</div>
       <FlipItemGroup value={timeLeft.seconds} label="seconds" />
     </div>
   );

@@ -36,8 +36,8 @@ export default function DeleteButton({
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={onDelete}
-        title="Delete Confirmation"
-        message={`Are you sure you want to delete "${itemName}"? This action cannot be undone.`}
+        title="Delete Counter?"
+        message={`Are you sure you want to delete "${itemName}"? This action cannot be undone. Anyone with the link won't be able to access it anymore.`}
       />
     </>
   );

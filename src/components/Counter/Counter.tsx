@@ -14,12 +14,12 @@ import CancelButton from "../Buttons/CancelButton";
 import EditButton from "../Buttons/EditButton";
 import SaveButton from "../Buttons/SaveButton";
 import FlipClock from "../FlipClock/FlipClock";
+import Toast from "../Toast/Toast";
 
 import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
 import "react-date-picker/dist/DatePicker.css";
 import "react-time-picker/dist/TimePicker.css";
-import Toast from "../Toast/Toast";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -31,15 +31,13 @@ export default function Counter({ id }: { id: string }) {
   const [loadingCounter, setLoadingCounter] = useState<boolean>(true);
   const [loadingSaveDate, setLoadingSaveDate] = useState<boolean>(false);
   const [loadingSaveTitle, setLoadingSaveTitle] = useState<boolean>(false);
-  // const [loadingVisibility, setLoadingVisibility] = useState<boolean>(false);
 
   const [isEditingDate, setIsEditingDate] = useState<boolean>(false);
 
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>("");
-  // const [isPublic, setIsPublic] = useState<boolean>(true);
 
-  const [counterData, setCounterData] = useState<CounterType>(Object);
+  const [counterData, setCounterData] = useState<CounterType | null>(null);
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [dateValue, onChangeDate] = useState<Value>(new Date());
   const [timeValue, onChangeTime] = useState<string | null>("00:00");
@@ -57,25 +55,28 @@ export default function Counter({ id }: { id: string }) {
       if (!id) return;
       setLoadingCounter(true);
       const { data: counterData, error } = await getCounterBySID(id);
-      if (error) return;
+
+      if (error || !counterData) {
+        router.push("/404");
+      }
+
       if (counterData) {
         setCounterData(counterData);
         setEditedTitle(counterData.title);
-        // setIsPublic(counterData.is_public);
 
         const endDate = new Date(counterData.end_date);
         setEndDate(endDate);
         onChangeDate(endDate);
 
-        const hours = endDate.getHours().toString();
-        const minutes = endDate.getMinutes().toString();
+        const hours = endDate.getHours().toString().padStart(2, "0");
+        const minutes = endDate.getMinutes().toString().padStart(2, "0");
         onChangeTime(`${hours}:${minutes}`);
       }
       setLoadingCounter(false);
     };
 
     fetchCounter();
-  }, [id]);
+  }, [id, router]);
 
   useEffect(() => {
     if (dateValue && timeValue) {
@@ -92,63 +93,57 @@ export default function Counter({ id }: { id: string }) {
     }
   }, [dateValue, timeValue]);
 
-  const handleUpdateDate = async () => {
-    console.log("Saving...");
-    setLoadingSaveDate(true);
-    if (!id) return;
-    const { error } = await updateCounter(id, {
-      end_date: endDate,
-      modified_at: new Date(),
-    });
-    if (error) {
-      console.error("Error updating date:", error);
-      return;
-    }
+  const handleSaveTitle = async () => {
+    if (!counterData) return;
 
-    setIsEditingDate(false);
-    setLoadingSaveDate(false);
-  };
-
-  const handleUpdateTitle = async () => {
-    if (!id) return;
     setLoadingSaveTitle(true);
-
-    const { error } = await updateCounter(id, {
+    const { error } = await updateCounter(counterData.id, {
       title: editedTitle,
-      modified_at: new Date(),
     });
 
     if (error) {
-      console.error("Error updating title:", error);
-      return;
+      setToast({
+        isVisible: true,
+        message: "Failed to update title",
+      });
+    } else {
+      setCounterData((prev) => (prev ? { ...prev, title: editedTitle } : null));
+      setIsEditingTitle(false);
+      setToast({
+        isVisible: true,
+        message: "Title updated successfully",
+      });
     }
-
-    setCounterData((prev) => ({ ...prev, title: editedTitle }));
-    setIsEditingTitle(false);
     setLoadingSaveTitle(false);
   };
 
-  // const handleUpdateVisibility = async (isPublic: boolean) => {
-  //   if (!id) return;
-  //   setLoadingVisibility(true);
+  const handleSaveDate = async () => {
+    if (!counterData) return;
 
-  //   const { error } = await updateCounter(id, {
-  //     is_public: isPublic,
-  //     modified_at: new Date(),
-  //   });
+    setLoadingSaveDate(true);
+    const { error } = await updateCounter(counterData.id, {
+      end_date: endDate,
+    });
 
-  //   if (error) {
-  //     console.error("Error updating visibility:", error);
-  //     setIsPublic(!isPublic);
-  //     setLoadingVisibility(false);
-  //     return;
-  //   }
-
-  //   setCounterData((prev) => ({ ...prev, is_public: isPublic }));
-  //   setLoadingVisibility(false);
-  // };
+    if (error) {
+      setToast({
+        isVisible: true,
+        message: "Failed to update date",
+      });
+    } else {
+      setCounterData((prev) => (prev ? { ...prev, end_date: endDate } : null));
+      setIsEditingDate(false);
+      setToast({
+        isVisible: true,
+        message: "Date updated successfully",
+      });
+    }
+    setLoadingSaveDate(false);
+  };
 
   const handleCopyLink = () => {
+    if (!counterData) return;
+
     const shareUrl = `${baseUrl}/${getFormattedURL(counterData.title)}/${
       counterData.sid
     }`;
@@ -171,8 +166,28 @@ export default function Counter({ id }: { id: string }) {
       });
   };
 
+  if (loadingCounter) {
+    return (
+      <div className="flex flex-col justify-center items-center gap-16">
+        <div className="skeleton w-96 h-14"></div>
+        <div className="flex items-center gap-16 mb-8">
+          {[...Array(4)].map((e, i) => (
+            <div key={i} className="skeleton w-44 h-32">
+              {e}
+            </div>
+          ))}
+        </div>
+        <div className="skeleton w-96 h-8"></div>
+      </div>
+    );
+  }
+
+  if (!counterData) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col items-center gap-8 xl:gap-16">
+    <div className="flex flex-col items-center justify-center max-h-[100svh] gap-8 xl:gap-16">
       {/* === BACK BUTTON === */}
 
       <div className="absolute top-20 left-4">
@@ -195,159 +210,113 @@ export default function Counter({ id }: { id: string }) {
         )}
       </div>
 
-      {/* === TOGGLE === */}
-      {/* {user && counterData.user_id === user?.id && (
-        <div className="absolute top-20 flex items-center justify-center gap-2">
-          {isPublic ? (
-            <span>Private</span>
-          ) : (
-            <span className="font-bold">Private</span>
-          )}
-          <input
-            type="checkbox"
-            checked={isPublic}
-            disabled={loadingVisibility}
-            onChange={(e) => {
-              setIsPublic(e.target.checked);
-              handleUpdateVisibility(e.target.checked);
-            }}
-            className={"toggle border-black text-black"}
-          />
-          {isPublic ? (
-            <span className="font-bold">Public</span>
-          ) : (
-            <span>Public</span>
-          )}
+      <div className="flex flex-row justify-center items-center gap-4 relative">
+        <div className="absolute w-32 lg:w-80 text-left left-[-10] lg:left-[-50] top-[-40] lg:top-[-80] -rotate-6 text-2xl lg:text-6xl damion">
+          Days Left Of
         </div>
-      )} */}
-
-      {loadingCounter ? (
-        <div className="flex flex-col justify-center items-center gap-16">
-          <div className="skeleton w-96 h-14"></div>
-          <div className="flex items-center gap-16 mb-8">
-            {[...Array(4)].map((e, i) => (
-              <div key={i} className="skeleton w-44 h-32">
-                {e}
-              </div>
-            ))}
+        {isEditingTitle ? (
+          <div className="flex items-center gap-2 w-[90vw] md:w-[60vw] xl:w-[40vw]">
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              className="input w-[100%] input-bordered text-xl xl:text-3xl font-bold text-center"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveTitle();
+                } else if (e.key === "Escape") {
+                  setIsEditingTitle(false);
+                  setEditedTitle(counterData.title);
+                }
+              }}
+              autoFocus
+            />
+            <SaveButton
+              onClick={handleSaveTitle}
+              isLoading={loadingSaveTitle}
+            />
+            <CancelButton
+              onClick={() => {
+                setIsEditingTitle(false);
+                setEditedTitle(counterData.title);
+              }}
+            />
           </div>
-          <div className="skeleton w-96 h-8"></div>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-row justify-center items-center gap-4 relative">
-            <div className="absolute w-80 text-left left-[-10] lg:left-[-50] top-[-40] lg:top-[-80] -rotate-6 text-2xl lg:text-6xl damion">
-              Days Left Of
-            </div>
-            {isEditingTitle ? (
-              <div className="flex items-center gap-2 w-[90vw] md:w-[60vw] xl:w-[40vw]">
-                <input
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  className="input w-[100%] input-bordered text-xl xl:text-3xl font-bold text-center"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleUpdateTitle();
-                    } else if (e.key === "Escape") {
-                      setIsEditingTitle(false);
-                      setEditedTitle(counterData.title);
-                    }
-                  }}
-                  autoFocus
-                />
-                <SaveButton
-                  onClick={handleUpdateTitle}
-                  isLoading={loadingSaveTitle}
-                />
-                <CancelButton
-                  onClick={() => {
-                    setIsEditingTitle(false);
-                    setEditedTitle(counterData.title);
-                  }}
-                />
-              </div>
-            ) : (
-              <>
-                <h1 className="text-xl lg:text-6xl font-bold max-w-[70vw]">
-                  {counterData.title}
-                </h1>
-                {user && counterData.user_id === user?.id && (
-                  <EditButton onClick={() => setIsEditingTitle(true)} />
-                )}
-              </>
+        ) : (
+          <>
+            <h1 className="text-xl lg:text-6xl font-bold max-w-[70vw]">
+              {counterData.title}
+            </h1>
+            {user && counterData.user_id === user?.id && (
+              <EditButton onClick={() => setIsEditingTitle(true)} />
             )}
+          </>
+        )}
+      </div>
+
+      <FlipClock endDate={endDate} />
+
+      <div className="flex items-center justify-center gap-2">
+        {isEditingDate ? (
+          <div className="flex flex-wrap max-w-[90vw] items-center justify-center gap-2">
+            <h1 className="text-2xl">Ends</h1>
+            <DatePicker
+              onChange={onChangeDate}
+              value={dateValue}
+              calendarProps={{ calendarType: "gregory" }}
+              clearIcon={null}
+              className="h-[40px]"
+            />
+            <h1 className="text-2xl">at</h1>
+            <TimePicker
+              onChange={onChangeTime}
+              value={timeValue}
+              clearIcon={null}
+              disableClock={true}
+              className="h-[40px]"
+            />
+            <h1 className="text-2xl">
+              {endDate
+                .toLocaleString(undefined, {
+                  minute: "2-digit",
+                  timeZoneName: "short",
+                })
+                .slice(-3)}
+            </h1>
+            <SaveButton onClick={handleSaveDate} isLoading={loadingSaveDate} />
+            <CancelButton
+              onClick={() => {
+                setIsEditingDate(false);
+
+                const endDate = new Date(counterData.end_date);
+                setEndDate(endDate);
+                onChangeDate(endDate);
+
+                const hours = endDate.getHours().toString();
+                const minutes = endDate.getMinutes().toString();
+                onChangeTime(`${hours}:${minutes}`);
+              }}
+            />
           </div>
-
-          <FlipClock endDate={endDate} />
-
-          <div className="flex items-center justify-center gap-2">
-            {/* <h1 className="text-2xl">Ends </h1> */}
-            {isEditingDate ? (
-              <div className="flex flex-wrap max-w-[90vw] items-center justify-center gap-2">
-                <h1 className="text-2xl">Ends</h1>
-                <DatePicker
-                  onChange={onChangeDate}
-                  value={dateValue}
-                  calendarProps={{ calendarType: "gregory" }}
-                  clearIcon={null}
-                  className="h-[40px]"
-                />
-                <h1 className="text-2xl">at</h1>
-                <TimePicker
-                  onChange={onChangeTime}
-                  value={timeValue}
-                  clearIcon={null}
-                  disableClock={true}
-                  className="h-[40px]"
-                />
-                <h1 className="text-2xl">
-                  {endDate
-                    .toLocaleString(undefined, {
-                      minute: "2-digit",
-                      timeZoneName: "short",
-                    })
-                    .slice(-3)}
-                </h1>
-                <SaveButton
-                  onClick={handleUpdateDate}
-                  isLoading={loadingSaveDate}
-                />
-                <CancelButton
-                  onClick={() => {
-                    setIsEditingDate(false);
-
-                    const endDate = new Date(counterData.end_date);
-                    setEndDate(endDate);
-                    onChangeDate(endDate);
-
-                    const hours = endDate.getHours().toString();
-                    const minutes = endDate.getMinutes().toString();
-                    onChangeTime(`${hours}:${minutes}`);
-                  }}
-                />
-              </div>
-            ) : (
-              <>
-                <h1 className="text-lg xl:text-2xl">
-                  Ends{" "}
-                  {endDate.toLocaleString(undefined, {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                    timeZoneName: "short",
-                  })}{" "}
-                  {user && counterData.user_id === user?.id && (
-                    <EditButton onClick={() => setIsEditingDate(true)} />
-                  )}
-                </h1>
-              </>
-            )}
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <h1 className="text-lg xl:text-2xl">
+              Ends{" "}
+              {endDate.toLocaleString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZoneName: "short",
+              })}{" "}
+              {user && counterData.user_id === user?.id && (
+                <EditButton onClick={() => setIsEditingDate(true)} />
+              )}
+            </h1>
+          </>
+        )}
+      </div>
 
       {/* === SHARE === */}
       {baseUrl && counterData.title && counterData.sid && (
