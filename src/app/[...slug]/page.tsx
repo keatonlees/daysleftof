@@ -1,6 +1,5 @@
 import Counter from "@/components/Counter/Counter";
 import { notFound } from "next/navigation";
-import { getCounterBySID } from "./actions";
 
 export default async function CounterPage({
   params,
