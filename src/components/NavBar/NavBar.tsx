@@ -29,7 +29,7 @@ export default function NavBar() {
 
       {/* right aligned */}
       <div className="flex-none flex gap-1">
-        <Link href="/" className="btn btn-ghost">
+        <Link href="/#recents" className="btn btn-ghost">
           Explore
         </Link>
         {user ? (

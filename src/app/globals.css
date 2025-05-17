@@ -1,4 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Damion&display=swap");
+
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, cupcake, nord, pastel;
@@ -6,4 +8,8 @@
 
 body {
   font-family: "Manrope", sans-serif;
+}
+
+.damion {
+  font-family: "Damion", cursive;
 }

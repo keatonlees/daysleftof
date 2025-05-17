@@ -18,7 +18,7 @@ export default function DeleteButton({
   return (
     <>
       <button
-        className="btn btn-error"
+        className="btn btn-sm xl:btn-md btn-error flex-1"
         onClick={() => setShowConfirm(true)}
         disabled={isLoading}
       >

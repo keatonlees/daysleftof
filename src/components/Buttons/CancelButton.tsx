@@ -7,7 +7,7 @@ interface CancelButtonProps {
 
 export default function CancelButton({ onClick }: CancelButtonProps) {
   return (
-    <button className="btn btn-error" onClick={onClick}>
+    <button className="btn btn-xs xl:btn-md btn-error" onClick={onClick}>
       <X />
       Discard
     </button>

@@ -1,14 +1,16 @@
 "use client";
 
 import DeleteButton from "@/components/Buttons/DeleteButton";
+import Toast from "@/components/Toast/Toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { BASE_URL_DEV, BASE_URL_PROD } from "@/lib/Constants";
-import { CounterType } from "@/lib/Types";
+import { CounterType, ToastState } from "@/lib/Types";
 import getFormattedURL from "@/util/getFormattedURL";
 import { Clipboard, Eye, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { updateCounter } from "../[...slug]/actions";
 import { addNewCounter, deleteCounter, getCountersByUID } from "./actions";
 
 export default function Profile() {
@@ -21,6 +23,15 @@ export default function Profile() {
   const [loadingDelete, setLoadingDelete] = useState<{
     [key: string]: boolean;
   }>({});
+
+  const [toast, setToast] = useState<ToastState>({
+    isVisible: false,
+    message: "",
+  });
+
+  useEffect(() => {
+    if (!user) router.push("/login");
+  }, [user, router]);
 
   useEffect(() => {
     const fetchCounters = async () => {
@@ -63,6 +74,31 @@ export default function Profile() {
     setLoadingDelete((prev) => ({ ...prev, [counterId]: false }));
   };
 
+  const handleUpdateVisibility = async (
+    counterId: string,
+    isPublic: boolean
+  ) => {
+    if (!counterId) return;
+
+    const { error } = await updateCounter(counterId, {
+      is_public: isPublic,
+      modified_at: new Date(),
+    });
+
+    if (error) {
+      console.error("Error updating visibility:", error);
+      return;
+    }
+
+    setCountersData((prev) =>
+      prev.map((counter) =>
+        counter.sid === counterId
+          ? { ...counter, is_public: isPublic }
+          : counter
+      )
+    );
+  };
+
   const handleCopyLink = (counter: CounterType) => {
     const isDevelopment = process.env.NODE_ENV === "development";
     const baseUrl = isDevelopment ? BASE_URL_DEV : BASE_URL_PROD;
@@ -71,13 +107,28 @@ export default function Profile() {
       counter.sid
     }`;
 
-    navigator.clipboard.writeText(shareUrl).catch((err) => {
-      console.error("Failed to copy link:", err);
-    });
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        setToast({
+          isVisible: true,
+          message: "Link copied to clipboard!",
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+        setToast({
+          isVisible: true,
+          message: "Failed to copy link",
+          type: "error",
+        });
+      });
   };
 
+  if (!user) return null;
+
   return (
-    <div className="p-24">
+    <div className="pt-20 px-4 md:px-12 xl:px-24">
       <h1 className="text-2xl font-bold mb-4">Profile</h1>
       <div className="mb-4">
         <p>ID: {user?.id}</p>
@@ -85,7 +136,7 @@ export default function Profile() {
       </div>
 
       <button
-        className="btn btn-success"
+        className="btn btn-sm xl:btn-md btn-success"
         onClick={handleNew}
         disabled={loadingNew}
       >
@@ -130,47 +181,74 @@ export default function Profile() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {countersData.map((counter) => (
-              <div key={counter.id} className="card bg-base-200">
-                <div className="card-body">
-                  <div className="flex justify-between">
+              <div
+                key={counter.id}
+                className="card bg-base-200 overflow-hidden"
+              >
+                <div className="card-body justify-between">
+                  <div className="flex flex-col justify-between">
+                    <h1>Days Left Of</h1>
                     <h1 className="text-xl font-bold">{counter.title}</h1>
-                    <h1 className="text-md font-bold">
-                      {counter.is_public ? "Public" : "Private"}
-                    </h1>
                   </div>
-                  <h1 className="text-md mb-2">
-                    Ends{" "}
-                    {new Date(counter.end_date).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                      timeZoneName: "short",
-                    })}
-                  </h1>
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/${getFormattedURL(counter.title)}/${counter.sid}`}
-                      className="btn btn-primary flex-1"
-                    >
-                      <Eye />
-                      View
-                    </Link>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleCopyLink(counter)}
-                    >
-                      <Clipboard />
-                      Copy Link
-                    </button>
-                    <DeleteButton
-                      onDelete={() => handleDelete(counter.id)}
-                      itemName={counter.title}
-                      isLoading={loadingDelete[counter.id]}
-                    />
+                  <div>
+                    <div className="flex gap-8 justify-between items-center mb-4">
+                      <h1 className="text-md">
+                        Ends{" "}
+                        {new Date(counter.end_date).toLocaleString(undefined, {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          timeZoneName: "short",
+                        })}
+                      </h1>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={counter.is_public}
+                          onChange={(e) => {
+                            handleUpdateVisibility(
+                              counter.sid,
+                              e.target.checked
+                            );
+                          }}
+                          className={"toggle toggle-sm border-black text-black"}
+                        />
+                        {counter.is_public ? (
+                          <span className="font-bold">Public</span>
+                        ) : (
+                          <span className="font-bold">Private</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <Link
+                        href={`/${getFormattedURL(counter.title)}/${
+                          counter.sid
+                        }`}
+                        className="btn btn-sm xl:btn-md btn-primary flex-2"
+                      >
+                        <Eye />
+                        View & Edit
+                      </Link>
+                      <button
+                        className="btn btn-sm xl:btn-md btn-primary flex-2"
+                        onClick={() => handleCopyLink(counter)}
+                      >
+                        <Clipboard />
+                        Copy Link
+                      </button>
+                      <DeleteButton
+                        onDelete={() => handleDelete(counter.id)}
+                        itemName={counter.title}
+                        isLoading={loadingDelete[counter.id]}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -178,6 +256,13 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      <Toast
+        isVisible={toast.isVisible}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+        type={toast.type}
+      />
     </div>
   );
 }

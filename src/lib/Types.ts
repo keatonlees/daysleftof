@@ -9,3 +9,9 @@ export interface CounterType {
   end_date: Date;
   is_public: boolean;
 }
+
+export interface ToastState {
+  isVisible: boolean;
+  message: string;
+  type?: "success" | "error" | "info";
+}

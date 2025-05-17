@@ -14,7 +14,7 @@ export default function SaveButton({
 }: SaveButtonProps) {
   return (
     <button
-      className="btn btn-success"
+      className="btn btn-xs xl:btn-md btn-success"
       onClick={onClick}
       disabled={disabled || isLoading}
     >

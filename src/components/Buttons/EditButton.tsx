@@ -7,7 +7,7 @@ interface EditButtonProps {
 
 export default function EditButton({ onClick }: EditButtonProps) {
   return (
-    <button className="btn btn-primary" onClick={onClick}>
+    <button className="btn btn-xs xl:btn-md btn-primary" onClick={onClick}>
       <Pencil />
       Edit
     </button>

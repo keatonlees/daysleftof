@@ -5,12 +5,22 @@ $bg: white
   background-color: $bg
   color: black
   position: relative
-  width: 80px
-  height: 120px
+  width: 40px
+  height: 60px
   perspective: 400px
-  font-size: 5rem
+  font-size: 2rem
   font-weight: 700
   border-radius: $br
+
+  @media (min-width: 768px)
+    width: 60px
+    height: 90px
+    font-size: 3.5rem
+
+  @media (min-width: 1024px)
+    width: 80px
+    height: 120px
+    font-size: 5rem
 
   .card-top,
   .card-bot,

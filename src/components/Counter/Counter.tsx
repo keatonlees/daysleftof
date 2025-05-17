@@ -3,7 +3,7 @@
 import { getCounterBySID, updateCounter } from "@/app/[...slug]/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { BASE_URL_DEV, BASE_URL_PROD } from "@/lib/Constants";
-import { CounterType } from "@/lib/Types";
+import { CounterType, ToastState } from "@/lib/Types";
 import getFormattedURL from "@/util/getFormattedURL";
 import { ArrowLeft, Clipboard } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
 import "react-date-picker/dist/DatePicker.css";
 import "react-time-picker/dist/TimePicker.css";
+import Toast from "../Toast/Toast";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -30,18 +31,26 @@ export default function Counter({ id }: { id: string }) {
   const [loadingCounter, setLoadingCounter] = useState<boolean>(true);
   const [loadingSaveDate, setLoadingSaveDate] = useState<boolean>(false);
   const [loadingSaveTitle, setLoadingSaveTitle] = useState<boolean>(false);
-  const [loadingVisibility, setLoadingVisibility] = useState<boolean>(false);
+  // const [loadingVisibility, setLoadingVisibility] = useState<boolean>(false);
 
   const [isEditingDate, setIsEditingDate] = useState<boolean>(false);
 
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>("");
-  const [isPublic, setIsPublic] = useState<boolean>(true);
+  // const [isPublic, setIsPublic] = useState<boolean>(true);
 
   const [counterData, setCounterData] = useState<CounterType>(Object);
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [dateValue, onChangeDate] = useState<Value>(new Date());
   const [timeValue, onChangeTime] = useState<string | null>("00:00");
+
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const baseUrl = isDevelopment ? BASE_URL_DEV : BASE_URL_PROD;
+
+  const [toast, setToast] = useState<ToastState>({
+    isVisible: false,
+    message: "",
+  });
 
   useEffect(() => {
     const fetchCounter = async () => {
@@ -52,7 +61,7 @@ export default function Counter({ id }: { id: string }) {
       if (counterData) {
         setCounterData(counterData);
         setEditedTitle(counterData.title);
-        setIsPublic(counterData.is_public);
+        // setIsPublic(counterData.is_public);
 
         const endDate = new Date(counterData.end_date);
         setEndDate(endDate);
@@ -119,51 +128,75 @@ export default function Counter({ id }: { id: string }) {
     setLoadingSaveTitle(false);
   };
 
-  const handleUpdateVisibility = async (isPublic: boolean) => {
-    if (!id) return;
-    setLoadingVisibility(true);
+  // const handleUpdateVisibility = async (isPublic: boolean) => {
+  //   if (!id) return;
+  //   setLoadingVisibility(true);
 
-    const { error } = await updateCounter(id, {
-      is_public: isPublic,
-      modified_at: new Date(),
-    });
+  //   const { error } = await updateCounter(id, {
+  //     is_public: isPublic,
+  //     modified_at: new Date(),
+  //   });
 
-    if (error) {
-      console.error("Error updating visibility:", error);
-      setIsPublic(!isPublic);
-      setLoadingVisibility(false);
-      return;
-    }
+  //   if (error) {
+  //     console.error("Error updating visibility:", error);
+  //     setIsPublic(!isPublic);
+  //     setLoadingVisibility(false);
+  //     return;
+  //   }
 
-    setCounterData((prev) => ({ ...prev, is_public: isPublic }));
-    setLoadingVisibility(false);
-  };
+  //   setCounterData((prev) => ({ ...prev, is_public: isPublic }));
+  //   setLoadingVisibility(false);
+  // };
 
   const handleCopyLink = () => {
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const baseUrl = isDevelopment ? BASE_URL_DEV : BASE_URL_PROD;
-
     const shareUrl = `${baseUrl}/${getFormattedURL(counterData.title)}/${
       counterData.sid
     }`;
 
-    navigator.clipboard.writeText(shareUrl).catch((err) => {
-      console.error("Failed to copy link:", err);
-    });
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        setToast({
+          isVisible: true,
+          message: "Link copied to clipboard!",
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+        setToast({
+          isVisible: true,
+          message: "Failed to copy link",
+          type: "error",
+        });
+      });
   };
 
   return (
-    <div className="flex flex-col items-center gap-16">
+    <div className="flex flex-col items-center gap-8 xl:gap-16">
       {/* === BACK BUTTON === */}
+
       <div className="absolute top-20 left-4">
-        <button className="btn" onClick={() => router.back()}>
-          <ArrowLeft />
-          Back
-        </button>
+        {user && counterData.user_id === user?.id ? (
+          <button
+            className="btn btn-sm lg:btn-md"
+            onClick={() => router.push("/profile")}
+          >
+            <ArrowLeft />
+            Profile
+          </button>
+        ) : (
+          <button
+            className="btn btn-sm lg:btn-md"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft />
+            Back
+          </button>
+        )}
       </div>
 
       {/* === TOGGLE === */}
-      {user && counterData.user_id === user?.id && (
+      {/* {user && counterData.user_id === user?.id && (
         <div className="absolute top-20 flex items-center justify-center gap-2">
           {isPublic ? (
             <span>Private</span>
@@ -186,7 +219,7 @@ export default function Counter({ id }: { id: string }) {
             <span>Public</span>
           )}
         </div>
-      )}
+      )} */}
 
       {loadingCounter ? (
         <div className="flex flex-col justify-center items-center gap-16">
@@ -203,16 +236,16 @@ export default function Counter({ id }: { id: string }) {
       ) : (
         <>
           <div className="flex flex-row justify-center items-center gap-4 relative">
-            <div className="absolute left-[-60] top-[-30] -rotate-6 text-2xl">
-              DaysLeftOf
+            <div className="absolute w-80 text-left left-[-10] lg:left-[-50] top-[-40] lg:top-[-80] -rotate-6 text-2xl lg:text-6xl damion">
+              Days Left Of
             </div>
             {isEditingTitle ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-[90vw] md:w-[60vw] xl:w-[40vw]">
                 <input
                   type="text"
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="input min-w-[40vw] input-bordered text-3xl font-bold text-center"
+                  className="input w-[100%] input-bordered text-xl xl:text-3xl font-bold text-center"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleUpdateTitle();
@@ -236,7 +269,7 @@ export default function Counter({ id }: { id: string }) {
               </div>
             ) : (
               <>
-                <h1 className="text-6xl font-bold max-w-[70vw]">
+                <h1 className="text-xl lg:text-6xl font-bold max-w-[70vw]">
                   {counterData.title}
                 </h1>
                 {user && counterData.user_id === user?.id && (
@@ -249,9 +282,10 @@ export default function Counter({ id }: { id: string }) {
           <FlipClock endDate={endDate} />
 
           <div className="flex items-center justify-center gap-2">
-            <h1 className="text-2xl">Ends </h1>
+            {/* <h1 className="text-2xl">Ends </h1> */}
             {isEditingDate ? (
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex flex-wrap max-w-[90vw] items-center justify-center gap-2">
+                <h1 className="text-2xl">Ends</h1>
                 <DatePicker
                   onChange={onChangeDate}
                   value={dateValue}
@@ -295,7 +329,8 @@ export default function Counter({ id }: { id: string }) {
               </div>
             ) : (
               <>
-                <h1 className="text-2xl">
+                <h1 className="text-lg xl:text-2xl">
+                  Ends{" "}
                   {endDate.toLocaleString(undefined, {
                     year: "numeric",
                     month: "long",
@@ -303,11 +338,11 @@ export default function Counter({ id }: { id: string }) {
                     hour: "numeric",
                     minute: "2-digit",
                     timeZoneName: "short",
-                  })}
+                  })}{" "}
+                  {user && counterData.user_id === user?.id && (
+                    <EditButton onClick={() => setIsEditingDate(true)} />
+                  )}
                 </h1>
-                {user && counterData.user_id === user?.id && (
-                  <EditButton onClick={() => setIsEditingDate(true)} />
-                )}
               </>
             )}
           </div>
@@ -315,12 +350,30 @@ export default function Counter({ id }: { id: string }) {
       )}
 
       {/* === SHARE === */}
-      <div className="absolute bottom-4">
-        <button className="btn btn-primary" onClick={handleCopyLink}>
-          <Clipboard />
-          Copy Link
-        </button>
-      </div>
+      {baseUrl && counterData.title && counterData.sid && (
+        <div className="absolute bottom-4 join w-[90vw] md:w-[40vw] xl:w-[25vw]">
+          <input
+            type="text"
+            value={`${baseUrl}/${getFormattedURL(counterData.title)}/${
+              counterData.sid
+            }`}
+            readOnly
+            className="input flex-1"
+          />
+
+          <button className="btn btn-primary" onClick={handleCopyLink}>
+            <Clipboard />
+            Copy
+          </button>
+        </div>
+      )}
+
+      <Toast
+        isVisible={toast.isVisible}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+        type={toast.type}
+      />
     </div>
   );
 }
