@@ -1,6 +1,7 @@
 "use client";
 
 import FlipClock from "@/components/FlipClock/FlipClock";
+import Footer from "@/components/Footer/Footer";
 import { CounterType } from "@/lib/Types";
 import getFormattedURL from "@/util/getFormattedURL";
 import { Eye } from "lucide-react";
@@ -38,7 +39,7 @@ export default function Home() {
           Super Simple Countdowns
         </p>
 
-        <FlipClock endDate={new Date("2027-05-24")} />
+        <FlipClock endDate={new Date("2027-08-21")} />
 
         <div className="flex gap-2">
           <button
@@ -109,6 +110,8 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      <Footer />
     </>
   );
 }

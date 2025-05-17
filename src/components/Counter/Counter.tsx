@@ -211,7 +211,7 @@ export default function Counter({ id }: { id: string }) {
       </div>
 
       <div className="flex flex-row justify-center items-center gap-4 relative">
-        <div className="absolute w-32 lg:w-80 text-left left-[-10] lg:left-[-50] top-[-40] lg:top-[-80] -rotate-6 text-2xl lg:text-6xl damion">
+        <div className="absolute w-32 lg:w-80 text-left left-[-10] lg:left-[-50] top-[-40] lg:top-[-80] -rotate-6 text-2xl lg:text-6xl damion text-primary-content">
           Days Left Of
         </div>
         {isEditingTitle ? (
