@@ -94,6 +94,8 @@ export default function Counter({ id }: { id: string }) {
   }, [dateValue, timeValue]);
 
   const handleSaveTitle = async () => {
+    console.log("saving...")
+
     if (!counterData) return;
 
     setLoadingSaveTitle(true);

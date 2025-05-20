@@ -92,9 +92,7 @@ export default function Profile() {
 
     setCountersData((prev) =>
       prev.map((counter) =>
-        counter.sid === counterId
-          ? { ...counter, is_public: isPublic }
-          : counter
+        counter.id === counterId ? { ...counter, is_public: isPublic } : counter
       )
     );
   };
@@ -212,7 +210,7 @@ export default function Profile() {
                           checked={counter.is_public}
                           onChange={(e) => {
                             handleUpdateVisibility(
-                              counter.sid,
+                              counter.id,
                               e.target.checked
                             );
                           }}

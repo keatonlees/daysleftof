@@ -16,11 +16,12 @@ export async function getCounterBySID(id: string) {
 }
 
 export async function updateCounter(id: string, dataToUpdate = {}) {
+  console.log(id, dataToUpdate);
   try {
     await supabase
       .from("Counters")
       .update(dataToUpdate)
-      .eq("sid", id)
+      .eq("id", id)
       .throwOnError();
 
     return { error: null };
