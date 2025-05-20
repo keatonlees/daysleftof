@@ -2,9 +2,11 @@
 
 import FlipClock from "@/components/FlipClock/FlipClock";
 import Footer from "@/components/Footer/Footer";
-import { CounterType } from "@/lib/Types";
+import Toast from "@/components/Toast/Toast";
+import { BASE_URL_DEV, BASE_URL_PROD } from "@/lib/Constants";
+import { CounterType, ToastState } from "@/lib/Types";
 import getFormattedURL from "@/util/getFormattedURL";
-import { Eye } from "lucide-react";
+import { Clipboard, Eye } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -15,6 +17,11 @@ export default function Home() {
 
   const [countersData, setCountersData] = useState<CounterType[]>([]);
   const [loadingCounters, setLoadingCounters] = useState<boolean>(true);
+
+  const [toast, setToast] = useState<ToastState>({
+    isVisible: false,
+    message: "",
+  });
 
   useEffect(() => {
     const fetchCounters = async () => {
@@ -30,6 +37,32 @@ export default function Home() {
   const handleExplore = () => {
     const element = document.getElementById("recents");
     element?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleCopyLink = (counter: CounterType) => {
+    const isDevelopment = process.env.NODE_ENV === "development";
+    const baseUrl = isDevelopment ? BASE_URL_DEV : BASE_URL_PROD;
+
+    const shareUrl = `${baseUrl}/${getFormattedURL(counter.title)}/${
+      counter.sid
+    }`;
+
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        setToast({
+          isVisible: true,
+          message: "Link copied to clipboard!",
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+        setToast({
+          isVisible: true,
+          message: "Failed to copy link",
+          type: "error",
+        });
+      });
   };
 
   return (
@@ -95,20 +128,37 @@ export default function Home() {
                         })}
                       </h1>
                     </div>
-
-                    <Link
-                      href={`/${getFormattedURL(counter.title)}/${counter.sid}`}
-                      className="btn btn-sm xl:btn-md btn-primary w-full"
-                    >
-                      <Eye />
-                      View
-                    </Link>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Link
+                        href={`/${getFormattedURL(counter.title)}/${
+                          counter.sid
+                        }`}
+                        className="btn btn-sm xl:btn-md btn-primary flex-1"
+                      >
+                        <Eye />
+                        View
+                      </Link>
+                      <button
+                        className="btn btn-sm xl:btn-md btn-primary flex-2"
+                        onClick={() => handleCopyLink(counter)}
+                      >
+                        <Clipboard />
+                        Copy Link
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        <Toast
+          isVisible={toast.isVisible}
+          message={toast.message}
+          onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+          type={toast.type}
+        />
       </div>
 
       <Footer />
