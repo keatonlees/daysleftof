@@ -54,7 +54,7 @@ export default function SignUpPage() {
       setLoading(true);
       setError("");
       await signUp(email, password);
-      router.push("/");
+      router.push("/profile");
     } catch (e: unknown) {
       setError((e as Error).message || "Failed to create your account.");
       console.log(e);

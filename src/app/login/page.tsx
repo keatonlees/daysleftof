@@ -26,7 +26,7 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
       await signIn(email, password);
-      router.push("/");
+      router.push("/profile");
     } catch (e: unknown) {
       setError((e as Error).message || "Failed to login.");
       console.log(e);
