@@ -4,8 +4,7 @@ A super simple way to create, track and share countdowns to any event! DaysLeftO
 
 I also built the flip clock animation to from the ground up to be aesthetic and performant. No additional libraries!
 
-Get Started
-[DaysLeftOf](https://www.daysleftof.com/)
+[Get Started](https://www.daysleftof.com/)
 
 ## Tech Stack
 
