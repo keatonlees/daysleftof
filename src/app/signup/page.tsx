@@ -23,38 +23,12 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (password.length <= 8) {
-      setError("Password must be longer than 8 characters");
-      return;
-    }
-    if (!password.match(/[a-z]/g)) {
-      setError("Password must contain lowercase letters");
-      return;
-    }
-    if (!password.match(/[A-Z]/g)) {
-      setError("Password must contain uppercase letters");
-      return;
-    }
-    if (!password.match(/[0-9]/g)) {
-      setError("Password must contain numbers");
-      return;
-    }
-    if (!password.match(/[!@#$%^&*]/g)) {
-      setError("Password must contain special characters");
-      return;
-    }
-
     // Sign Up
     try {
       setLoading(true);
       setError("");
       await signUp(email, password);
-      router.push("/profile");
+      router.push("/");
     } catch (e: unknown) {
       setError((e as Error).message || "Failed to create your account.");
       console.log(e);
@@ -68,7 +42,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex w-full h-screen justify-center items-center">
-      <div className="card w-96 bg-base-100 shadow-xl">
+      <div className="card w-96 bg-base-200 shadow-xl">
         <div className="card-body">
           <h1 className="card-title text-2xl font-bold">Sign Up</h1>
 
@@ -95,6 +69,9 @@ export default function SignUpPage() {
                   required
                 />
               </label>
+              {email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/g) && (
+                <p className="text-error text-xs">Enter a valid email</p>
+              )}
             </div>
 
             {/* Password Input */}
@@ -119,6 +96,19 @@ export default function SignUpPage() {
                   {showPassword ? <Eye size={16} /> : <EyeClosed size={16} />}
                 </span>
               </label>
+              {password && password.length <= 8 && (
+                <p className="text-error text-xs">
+                  Must be longer than 8 characters
+                </p>
+              )}
+              {password && !password.match(/[0-9]/g) && (
+                <p className="text-error text-xs">Must contain a number</p>
+              )}
+              {password && !password.match(/[!@#$%^&*]/g) && (
+                <p className="text-error text-xs">
+                  Must contain a special character
+                </p>
+              )}
             </div>
 
             {/* Confirm Password Input */}
@@ -147,6 +137,9 @@ export default function SignUpPage() {
                   )}
                 </span>
               </label>
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-error text-xs">Passwords do not match</p>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -154,7 +147,12 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 className="btn btn-primary rounded-xl w-full"
-                disabled={loading}
+                disabled={
+                  loading ||
+                  !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/g) ||
+                  password !== confirmPassword ||
+                  !password.match(/^(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/g)
+                }
               >
                 {loading ? "Creating Account..." : "Sign Up"}
               </button>
